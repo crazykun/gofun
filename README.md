@@ -42,20 +42,19 @@
 ```
 
 project  
-└───App                   应用目录
-│   └───Common            公共文件
-│       |  function.go     公共方法
-│   └───Controller        控制器目录
-│   └───Logic             逻辑层
-│   └───Model             数据层
-│   └───Library           封装的应用
+└───app                   应用目录
+│   └───controller        控制器目录
+│   └───logic             逻辑层
+│   └───model             数据层
+│   └───util              公共组件工具
 │       │   ...
-└───Config                配置目录
-│   └───dev    
-│   └───test             
-│   └───pro             
-└───Log                   日志目录
-└───Temp                  存放临时文件，进程通信也放在这里
+│   └───route             路由
+└───config                配置目录
+│   └───dev                  开发环境配置
+│   └───test                 测试环境配置
+│   └───pre                  预发布环境配置
+│   └───prod                 生产环境配置
+└───log                   日志目录
 └───vendor                第三方包
 │   README.md   
 │   ...
@@ -70,7 +69,7 @@ project
       go mod vendor
    2. 服务启动  
       go run main.go
-      go run main.go -mode proc
+      go run main.go -mode prod
    3. 编译
       go build ./ 
 
