@@ -1,5 +1,12 @@
 package controller
 
+import (
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
+
 type User struct {
 	// Add Fields
 }
@@ -15,8 +22,8 @@ type UserCtrl struct{}
 // @Router /User [get]
 func (ctrl *UserCtrl) Get(c *gin.Context) {
 
-	// c.JSON(http.StatusOK, gin.H{})
-	util.Json(http.StatusOK, "success", {"name": "test"})
+	c.JSON(http.StatusOK, gin.H{})
+	// util.Json(http.StatusOK, "success", gin.H{"name": "test"})
 }
 
 // @Summary Get one item
@@ -35,7 +42,7 @@ func (ctrl *UserCtrl) GetOne(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"id": id})
 }
 
 // @Summary Add item
@@ -78,7 +85,7 @@ func (ctrl *UserCtrl) Put(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"id": id})
 }
 
 // @Summary Delete item
@@ -97,5 +104,5 @@ func (ctrl *UserCtrl) Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusNoContent, gin.H{})
+	c.JSON(http.StatusNoContent, gin.H{"id": id})
 }

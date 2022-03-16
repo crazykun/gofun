@@ -8,7 +8,7 @@
 | 环境管理 |自研 | 可动态区分测试,正式,预上线等 |
 | 配置读取 |viper | 动态监听, 可以远程读取etcd/consul等 |
 | 路由规则 | | |
-| 日志组件 | | |
+| 日志组件 | zap|github.com/uber-go/zap |
 | 错误处理 | | |
 | 类型转换 | | |
 | 缓存管理 | | |
@@ -16,7 +16,9 @@
 | 热重载 |air,fresh,bee,gowatch,gin自带,realize | |
 | 优雅重启 |zerodown |github.com/douglarek/zerodown |
 | 连接池 | | |
-| orm | | |
+| 依赖注入 |wire |github.com/google/wire/ |
+| Redis |go-redis |https://github.com/go-redis/redis |
+| orm |Gorm | https://github.com/go-gorm/gorm/|
 | rpc | | |
 | 文档生成 | | |
 
@@ -46,9 +48,9 @@ project
 │   └───controller        控制器目录
 │   └───logic             逻辑层
 │   └───model             数据层
-│   └───util              公共组件工具
 │       │   ...
 │   └───route             路由
+└───assets                静态文件
 └───config                配置目录
 │   └───dev                  开发环境配置
 │   └───test                 测试环境配置
@@ -66,12 +68,14 @@ project
 
 ```golang
    1. 下载依赖
+      go mod tidy
       go mod vendor
    2. 服务启动  
       go run main.go
       go run main.go -mode prod
    3. 编译
       go build ./ 
+      go build -o main.exe main.go
 
 
 ```
