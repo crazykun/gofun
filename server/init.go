@@ -96,12 +96,13 @@ func chkConfig() {
 // 初始化配置
 func initConfig() {
 	viper.SetConfigName(RunMode)            //配置文件名
-	viper.SetConfigType("ini")              //配置文件类型
+	viper.SetConfigType("yaml")             //配置文件类型
 	viper.AddConfigPath(AppPath + "/conf/") //执行go run对应的路径配置
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(err)
 	}
+
 	viper.SetDefault("AppPath", AppPath)
 	if tools.InArray(RunMode, []string{"prod", "pre"}) {
 		viper.SetDefault("RunMode", gin.ReleaseMode)
@@ -110,7 +111,6 @@ func initConfig() {
 	}
 	viper.Unmarshal(&conf.Config)
 	// fmt.Printf("%+v", conf.Config)
-
 	// 监听配置文件变化
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
@@ -157,12 +157,12 @@ func StartServer(HttpServer *gin.Engine) {
 	// // 初始化定时器（立即运行定时器）
 	// Task.TimeInterval(0, 0, "0")
 
-	// // 实际访问网址和端口
+	// // 访问网址和端口
 	host := "127.0.0.1:" + strconv.Itoa(conf.Config.AppPort)
 
 	// 终端提示
 	log.Println(
-		"\n App Success! \n\n " +
+		"\n App Success! \n " +
 			" \n " +
 			"访问地址示例：http://" + host + " >>> \n " +
 			"1) 运行模式：" + conf.Config.RunMode + " \n " +

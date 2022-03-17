@@ -1,0 +1,30 @@
+AppName: "gin web demo"
+appport: 8080
+appversion: "1.0.0"
+timezone: "Asia/Shanghai"
+
+# possible values: DEBUG, INFO, WARNING, ERROR, FATAL
+logLevel: "DEBUG"
+
+mysql:
+  host: "127.0.0.1"
+  port: 3306
+  user: "root"
+  password: "123456"
+  database: "test"
+  #连接池配置
+  maxNum: 10
+  minNum: 2
+
+redis:
+  host: "127.0.0.1"
+  port: 6378
+  auth: ""
+  db: 0
+  #连接池配置
+  maxNum: 10
+  minNum: 2
+
+grpc:
+  host: "127.0.0.1"
+  port: 9090
