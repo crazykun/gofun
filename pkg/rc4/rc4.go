@@ -4,6 +4,7 @@ import (
 	cryptoRc4 "crypto/rc4"
 	"encoding/hex"
 	"fmt"
+	"strings"
 )
 
 var _ Rc4 = (*rc4)(nil)
@@ -39,7 +40,7 @@ func (r *rc4) Encrypt(encryptStr string) (string, error) {
 
 	cipher1.XORKeyStream(dest1, []byte(encryptStr))
 	fmt.Println(string([]byte(r.key)))
-	return hex.EncodeToString(dest1), nil
+	return strings.ToUpper(hex.EncodeToString(dest1)), nil
 }
 
 // Decrypt implements Rc4
