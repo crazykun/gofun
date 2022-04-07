@@ -12,4 +12,5 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/spf13/viper v1.10.1
+	github.com/toolkits/net v0.0.0-20160910085801-3f39ab6fe3ce
 )
