@@ -4,7 +4,7 @@ package middleware
 
 import (
 	"fmt"
-	"gofun/tools"
+	"gofun/internal/tools"
 	"math"
 
 	"github.com/gin-gonic/gin"

@@ -4,7 +4,7 @@ package middleware
 
 import (
 	"fmt"
-	"gofun/tools"
+	"gofun/internal/tools"
 	"time"
 
 	"github.com/gin-gonic/gin"
