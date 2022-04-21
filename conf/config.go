@@ -3,6 +3,7 @@ package conf
 var Config = &AppConfig{}
 var Db = &MySQLConfig{}
 var Redis = &RedisConfig{}
+var Redis2 = &RedisConfig{}
 
 type AppConfig struct {
 	AppName    string
@@ -13,8 +14,8 @@ type AppConfig struct {
 	LogLevel   string
 	RunMode    string
 
-	MySQL MySQLConfig
-	Redis RedisConfig
+	MySQL map[string]MySQLConfig
+	Redis map[string]RedisConfig
 }
 
 type MySQLConfig struct {
