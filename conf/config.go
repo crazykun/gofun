@@ -33,7 +33,7 @@ type RedisConfig struct {
 	Port   int
 	Auth   string
 	Db     int
-	MaxMum int
+	MaxNum int
 	MinNum int
 }
 
