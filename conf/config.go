@@ -1,9 +1,6 @@
 package conf
 
 var Config = &AppConfig{}
-var Db = &MySQLConfig{}
-var Redis = &RedisConfig{}
-var Redis2 = &RedisConfig{}
 
 type AppConfig struct {
 	AppName    string
@@ -16,6 +13,8 @@ type AppConfig struct {
 
 	MySQL map[string]MySQLConfig
 	Redis map[string]RedisConfig
+
+	Grpc grpcConfig
 }
 
 type MySQLConfig struct {
@@ -25,7 +24,7 @@ type MySQLConfig struct {
 	Password string
 	Database string
 	Charset  string
-	MaxMum   int
+	MaxNum   int
 	MinNum   int
 }
 
@@ -36,4 +35,9 @@ type RedisConfig struct {
 	Db     int
 	MaxMum int
 	MinNum int
+}
+
+type grpcConfig struct {
+	Host string
+	Port int
 }

@@ -4,16 +4,21 @@ import (
 	"flag"
 	routes "gofun/app/route"
 	"gofun/conf"
+	"gofun/internal/mysql"
 	"gofun/internal/tools"
 	"gofun/server/middleware"
 	"log"
 	"os"
 	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/viper"
+	gormysql "gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 var AppPath string
@@ -25,15 +30,6 @@ func init() {
 
 	// go版本检测
 	chkVersion()
-
-	// 初始化数据库
-	initDb()
-
-	// 初始化缓存
-	initCache()
-
-	// 初始化日志
-	initLog()
 }
 
 // go版本检测
@@ -54,7 +50,28 @@ func chkVersion() {
 
 // 初始化数据库
 func initDb() {
-
+	mysql.DbMap = make(map[string]*gorm.DB)
+	for name, info := range conf.Config.MySQL {
+		dsn := mysql.Dsn(info)
+		if conn, err := gorm.Open(gormysql.Open(dsn), &gorm.Config{}); err != nil {
+			log.Println("数据库", name, "连接失败：", err)
+			os.Exit(200)
+		} else {
+			//设置空闲时间，这个是比mysql 主动断开的时候短
+			sqlDB, err := conn.DB()
+			if err != nil {
+				log.Println("数据库", name, "连接失败：", err)
+				os.Exit(200)
+			}
+			// 设置连接池
+			sqlDB.SetConnMaxLifetime(time.Hour)
+			sqlDB.SetMaxOpenConns(info.MinNum)
+			sqlDB.SetMaxIdleConns(info.MaxNum)
+			mysql.DbMap[name] = conn
+			log.Println("数据库", name, "连接成功!")
+		}
+	}
+	return
 }
 
 // 初始化缓存
@@ -84,7 +101,7 @@ func chkConfig() {
 		} else {
 			RunMode = "dev"
 		}
-	} else if !tools.InArray(RunMode, []string{"dev", "test", "pre", "prod"}) {
+	} else if !tools.InArray(RunMode, []string{"dev", "test", "pre", "prod", "zhw"}) {
 		log.Println("err mode", RunMode)
 		os.Exit(200)
 	}
@@ -110,7 +127,7 @@ func initConfig() {
 		viper.SetDefault("RunMode", gin.DebugMode)
 	}
 	viper.Unmarshal(&conf.Config)
-	// fmt.Printf("%+v", conf.Config)
+	log.Printf("%+v", conf.Config)
 	// 监听配置文件变化
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
@@ -124,6 +141,15 @@ func StartServer(HttpServer *gin.Engine) {
 	chkConfig()
 	// 初始化配置
 	initConfig()
+
+	// 初始化数据库
+	initDb()
+
+	// 初始化缓存
+	initCache()
+
+	// 初始化日志
+	initLog()
 
 	// Gin服务
 	HttpServer = gin.Default()
