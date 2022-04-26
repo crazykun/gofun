@@ -8,13 +8,13 @@ type AppConfig struct {
 	AppPort    int
 	AppVersion string
 	Timezone   string
-	LogLevel   string
 	RunMode    string
 
 	MySQL map[string]MySQLConfig
 	Redis map[string]RedisConfig
 
 	Grpc grpcConfig
+	Log  LogConfig
 }
 
 type MySQLConfig struct {
@@ -40,4 +40,9 @@ type RedisConfig struct {
 type grpcConfig struct {
 	Host string
 	Port int
+}
+
+type LogConfig struct {
+	Dir   string
+	Level string
 }
