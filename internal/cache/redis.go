@@ -43,3 +43,13 @@ func RegisterRedisPool(clientName string, cacheConfig conf.RedisConfig) {
 func GetRedisInstance() *RedisPool {
 	return pool
 }
+
+func CloseRedisPool() {
+	for name, rdb := range pool.Instance {
+		if rdb == nil {
+			continue
+		}
+		rdb.Close()
+		log.Println("关闭redis连接：", name)
+	}
+}

@@ -52,6 +52,7 @@ func initDb() {
 	for k, v := range conf.Config.MySQL {
 		db.RegisterMysqlPool(k, v)
 	}
+	defer db.CloseMysqlPool()
 }
 
 // 初始化缓存
@@ -59,7 +60,7 @@ func initCache() {
 	for k, v := range conf.Config.Redis {
 		cache.RegisterRedisPool(k, v)
 	}
-
+	defer cache.CloseRedisPool()
 }
 
 // 配置文件自检

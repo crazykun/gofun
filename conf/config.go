@@ -19,7 +19,7 @@ type AppConfig struct {
 
 type MySQLConfig struct {
 	Host     string
-	Port     string
+	Port     int
 	User     string
 	Password string
 	Database string
