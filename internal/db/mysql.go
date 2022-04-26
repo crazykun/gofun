@@ -51,3 +51,14 @@ func RegisterMysqlPool(clientName string, dbConfig conf.MySQLConfig) {
 func GetMysqlPool() *MysqlPool {
 	return pool
 }
+
+func CloseMysqlPool() {
+	for name, db := range pool.Instance {
+		sqlDB, err := db.DB()
+		if err != nil {
+			continue
+		}
+		sqlDB.Close()
+		log.Println("关闭数据库连接：", name)
+	}
+}
