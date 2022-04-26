@@ -3,8 +3,11 @@ appport: 8080
 appversion: "1.0.0"
 timezone: "Asia/Shanghai"
 
-# possible values: DEBUG, INFO, WARNING, ERROR, FATAL
-logLevel: "DEBUG"
+# 日志配置
+log:
+  dir: "./log"
+  # possible values: DEBUG, INFO, WARNING, ERROR, FATAL
+  level: "DEBUG"
 
 mysql:
   default: {

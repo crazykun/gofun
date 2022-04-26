@@ -4,21 +4,20 @@ import (
 	"flag"
 	routes "gofun/app/route"
 	"gofun/conf"
-	"gofun/internal/mysql"
+	"gofun/internal/cache"
+	"gofun/internal/db"
 	"gofun/internal/tools"
 	"gofun/server/middleware"
+
 	"log"
 	"os"
 	"runtime"
 	"strconv"
-	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/viper"
-	gormysql "gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 var AppPath string
@@ -50,37 +49,16 @@ func chkVersion() {
 
 // 初始化数据库
 func initDb() {
-	mysql.DbMap = make(map[string]*gorm.DB)
-	for name, info := range conf.Config.MySQL {
-		dsn := mysql.Dsn(info)
-		if conn, err := gorm.Open(gormysql.Open(dsn), &gorm.Config{}); err != nil {
-			log.Println("数据库", name, "连接失败：", err)
-			os.Exit(200)
-		} else {
-			//设置空闲时间，这个是比mysql 主动断开的时候短
-			sqlDB, err := conn.DB()
-			if err != nil {
-				log.Println("数据库", name, "连接失败：", err)
-				os.Exit(200)
-			}
-			// 设置连接池
-			sqlDB.SetConnMaxLifetime(time.Hour)
-			sqlDB.SetMaxOpenConns(info.MinNum)
-			sqlDB.SetMaxIdleConns(info.MaxNum)
-			mysql.DbMap[name] = conn
-			log.Println("数据库", name, "连接成功!")
-		}
+	for k, v := range conf.Config.MySQL {
+		db.RegisterMysqlPool(k, v)
 	}
-	return
 }
 
 // 初始化缓存
 func initCache() {
-
-}
-
-// 初始化日志
-func initLog() {
+	for k, v := range conf.Config.Redis {
+		cache.RegisterRedisPool(k, v)
+	}
 
 }
 
@@ -148,9 +126,6 @@ func StartServer(HttpServer *gin.Engine) {
 	// 初始化缓存
 	initCache()
 
-	// 初始化日志
-	initLog()
-
 	// Gin服务
 	HttpServer = gin.Default()
 
@@ -159,6 +134,9 @@ func StartServer(HttpServer *gin.Engine) {
 
 	// 设置全局ctx参数（必须排第二）
 	HttpServer.Use(middleware.CommonParam)
+
+	// 日志中间件
+	HttpServer.Use(middleware.LoggerToFile)
 
 	// 拦截应用500报错，使之可视化
 	HttpServer.Use(middleware.AppError500)
@@ -184,7 +162,7 @@ func StartServer(HttpServer *gin.Engine) {
 	// Task.TimeInterval(0, 0, "0")
 
 	// // 访问网址和端口
-	host := "127.0.0.1:" + strconv.Itoa(conf.Config.AppPort)
+	host := "0.0.0.0:" + strconv.Itoa(conf.Config.AppPort)
 
 	// 终端提示
 	log.Println(

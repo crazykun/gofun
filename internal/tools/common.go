@@ -1,11 +1,14 @@
 package tools
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"gofun/conf"
+	"gofun/internal/cache"
+	"gofun/internal/db"
 	"html"
 	"io"
 	"io/ioutil"
@@ -19,6 +22,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
 )
 
 // 该函数比较两个版本号是否相等，是否大于或小于的关系
@@ -615,10 +621,11 @@ func FilterInput(_value string) string {
 	value := _value
 
 	blackArray := [...]string{ // 这些符号将被转义
-		"%", "(", ")", "!", "/", "^", "*", ".", "|", "=",
+		"%", "(", ")", "!", "/", "^", "*", ".", "|", "=", "&", ";", "$", "@", "'", "\"", "<", ">", "+", "CR", "LF", "BS", ",", "\\", "%00", "#",
 	}
+
 	changArray := [...]string{ // 这些符号将被替代
-		"select", "delete", "char", "insert", "count", "exec", "declare", "update",
+		"select", "delete", "char", "insert", "count", "exec", "declare", "update", "or", "and", "concat", "load", "extractvalue", "name_const", "payload",
 	}
 
 	for i := 0; i < len(blackArray); i++ {
@@ -787,4 +794,62 @@ func HideStringValue(_string string, start int, end int, replaceValue string) st
 		replace = replace + replaceValue
 	}
 	return strings.Replace(_string, blackString, replace, -1)
+}
+
+// 字符串反转 - @author 刘志超 2022年4月22日18:58:20
+func StrReverse(str string) string {
+	length := len(str) - 1
+	var bytes []byte
+	for i := length; i >= 0; i-- {
+		bytes = append(bytes, str[i])
+	}
+	return string(bytes)
+}
+
+// 10进制转62进制 - @author 刘志超 2022年4月22日18:58:20
+func Int64ToBinary62(num int64) string {
+	encodeStr := "b1BljvHnQAMSWLcmRZhqN8VsOo2tYC5irI9JGUTkfguwp4eKa73yDP06dxFzXE"
+	var bytes []byte
+	for num > 0 {
+		bytes = append(bytes, encodeStr[num%62])
+		num = num / 62
+	}
+	return StrReverse(string(bytes))
+}
+
+// 62进制转10进制 - @author 刘志超 2022年4月22日18:58:20
+func Binary62ToInt64(str string) int64 {
+	encodeStr := "b1BljvHnQAMSWLcmRZhqN8VsOo2tYC5irI9JGUTkfguwp4eKa73yDP06dxFzXE"
+	length := len(str) - 1
+	var num int64
+	for i := length; i >= 0; i-- {
+		index := float64(strings.IndexByte(encodeStr, str[i]))
+		num += int64(math.Pow(62, float64(length-i)) * index)
+	}
+	return num
+}
+
+// 获取mysql实例 @author 刘志超 2022年4月24日11:48:07
+func GetMyslInstance(db_name string) *gorm.DB {
+	return db.GetMysqlPool().GetInstance(db_name)
+}
+
+// 获取数 @author 刘志超 2022年4月24日11:48:07
+func GetRedisInstance(cache_name string) *redis.Client {
+	return cache.GetRedisInstance().GetInstance(cache_name)
+}
+
+// 设置缓存 @author 刘志超 2022年4月24日11:48:07
+func SetCache(name, value string, t int) {
+	GetRedisInstance("default").Set(context.Background(), name, value, time.Second*time.Duration(t))
+}
+
+// 获取缓存 @author 刘志超 2022年4月24日11:48:07
+func GetCache(name string) string {
+	str, err := GetRedisInstance("default").Get(context.Background(), name).Result()
+	if err == nil {
+		return str
+	} else {
+		return ""
+	}
 }
