@@ -15,6 +15,7 @@ import (
 	"strconv"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/viper"
@@ -52,7 +53,6 @@ func initDb() {
 	for k, v := range conf.Config.MySQL {
 		db.RegisterMysqlPool(k, v)
 	}
-	defer db.CloseMysqlPool()
 }
 
 // 初始化缓存
@@ -60,7 +60,6 @@ func initCache() {
 	for k, v := range conf.Config.Redis {
 		cache.RegisterRedisPool(k, v)
 	}
-	defer cache.CloseRedisPool()
 }
 
 // 配置文件自检
@@ -163,7 +162,8 @@ func StartServer(HttpServer *gin.Engine) {
 	// Task.TimeInterval(0, 0, "0")
 
 	// // 访问网址和端口
-	host := "0.0.0.0:" + strconv.Itoa(conf.Config.AppPort)
+	port := strconv.Itoa(conf.Config.AppPort)
+	host := "0.0.0.0:" + port
 
 	// 终端提示
 	log.Println(
@@ -180,5 +180,7 @@ func StartServer(HttpServer *gin.Engine) {
 		os.Exit(200)
 	}
 
+	// 优雅关闭重启
+	endless.ListenAndServe(":4242", HttpServer)
 	return
 }

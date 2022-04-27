@@ -16,7 +16,7 @@ type MysqlPool struct {
 }
 
 func (this *MysqlPool) addInstance(dbname string, db *gorm.DB) {
-	fmt.Println("=============  初始化 mysql " + dbname + "  =============")
+	log.Println("=============  初始化 mysql " + dbname + "  =============")
 	this.Instance[dbname] = db
 }
 
