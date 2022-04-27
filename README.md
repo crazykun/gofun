@@ -79,6 +79,8 @@ project
    3. 编译
       go build ./ 
       go build -o main.exe main.go
+   4. 热更新测试
+      fresh
 
 
 ```
