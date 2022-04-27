@@ -181,6 +181,6 @@ func StartServer(HttpServer *gin.Engine) {
 	}
 
 	// 优雅关闭重启
-	endless.ListenAndServe(":4242", HttpServer)
+	endless.ListenAndServe(":"+port, HttpServer)
 	return
 }
