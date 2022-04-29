@@ -43,9 +43,9 @@ func RankingLimiter(ranking int64) gin.HandlerFunc {
 		} else {
 			fmt.Println("优先级范围错误。"+alertRanking+" => ", cpuPercent)
 			ctx.JSON(200, gin.H{
-				"state": 0,
-				"msg":   "优先级范围错误",
-				"content": gin.H{
+				"status":  0,
+				"message": "优先级范围错误",
+				"data": gin.H{
 					"Route-Ranking": ranking,
 					"CPU-Num":       cpuNum,
 				},
@@ -57,9 +57,9 @@ func RankingLimiter(ranking int64) gin.HandlerFunc {
 		if cpuPercent > ranking { // 直接熔断，等待x秒定时周期后看CPU占用率是否恢复
 			tools.Log("达到熔断标准，uri="+Uri, ctx.ClientIP())
 			ctx.JSON(429, gin.H{
-				"state": 429,
-				"msg":   "通道拥挤，请稍后再试",
-				"content": gin.H{
+				"status":  429,
+				"message": "通道拥挤，请稍后再试",
+				"data": gin.H{
 					"Route-Ranking": ranking,
 					"CPU-Percent":   cpuPercent,
 				},

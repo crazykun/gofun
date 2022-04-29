@@ -88,11 +88,11 @@ func AppError500(ctx *gin.Context) {
 
 			// 返回
 			ctx.JSON(500, gin.H{
-				"state": 500,
-				"msg":   "代码运行报错，请查看代码运行日志",
-				"content": gin.H{
-					"error_func": errorFunc2,
-					"error_msg":  err,
+				"status":  500,
+				"message": "代码运行报错，请查看代码运行日志",
+				"data": gin.H{
+					"error_func":    errorFunc2,
+					"error_message": err,
 				},
 			})
 		}
