@@ -128,6 +128,8 @@ func StartServer(HttpServer *gin.Engine) {
 
 	// Gin服务
 	HttpServer = gin.Default()
+	// Gin运行时：release、debug、test
+	gin.SetMode(conf.Config.RunMode)
 
 	// 捕捉接口运行耗时（必须排第一）
 	HttpServer.Use(middleware.Runtime)
@@ -135,14 +137,16 @@ func StartServer(HttpServer *gin.Engine) {
 	// 设置全局ctx参数（必须排第二）
 	HttpServer.Use(middleware.CommonParam)
 
-	// 日志中间件
-	HttpServer.Use(middleware.LoggerToFile)
+	// 日志中间件写文件日志
+	if conf.Config.Log.ToFile {
+		HttpServer.Use(middleware.LoggerToFile)
+	}
+
+	// 接口限频中间件-每秒最大访问量
+	HttpServer.Use(middleware.HttpLimiter(conf.Config.HttpLimiter))
 
 	// 拦截应用500报错，使之可视化
 	HttpServer.Use(middleware.AppError500)
-
-	// Gin运行时：release、debug、test
-	gin.SetMode(conf.Config.RunMode)
 
 	// 静态路径
 	HttpServer.Static("/assets", "./assets")

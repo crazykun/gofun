@@ -3,12 +3,13 @@ package conf
 var Config = &AppConfig{}
 
 type AppConfig struct {
-	AppName    string
-	AppPath    string
-	AppPort    int
-	AppVersion string
-	Timezone   string
-	RunMode    string
+	AppName     string
+	AppPath     string
+	AppPort     int
+	AppVersion  string
+	Timezone    string
+	RunMode     string
+	HttpLimiter float64 // 每秒最大访问量
 
 	MySQL map[string]MySQLConfig
 	Redis map[string]RedisConfig
@@ -43,6 +44,7 @@ type grpcConfig struct {
 }
 
 type LogConfig struct {
-	Dir   string
-	Level string
+	Dir    string
+	Level  string
+	ToFile bool
 }
