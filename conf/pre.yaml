@@ -2,12 +2,14 @@ AppName: "gin web demo"
 appport: 8080
 appversion: "1.0.0"
 timezone: "Asia/Shanghai"
+httpLimiter: 1000
 
 # 日志配置
 log:
   dir: "./log"
   # possible values: DEBUG, INFO, WARNING, ERROR, FATAL
   level: "DEBUG"
+  toFile: true
 
 mysql:
   default: {

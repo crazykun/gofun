@@ -5,6 +5,7 @@ import (
 	"gofun/conf"
 	"os"
 	"path"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -70,7 +71,7 @@ func setOutPutFile(level logrus.Level) {
 	default:
 		panic(fmt.Errorf("invaild log level error %d", logrus.ErrorLevel))
 	}
-	fileName := path.Join(conf.Config.Log.Dir, name+".log")
+	fileName := path.Join(conf.Config.Log.Dir, name+"_"+time.Now().Format("20060102")+".log")
 	var err error
 	os.Stderr, err = os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
