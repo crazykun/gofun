@@ -8,6 +8,8 @@ import (
 	"gofun/internal/db"
 	"gofun/internal/tools"
 	"gofun/server/middleware"
+	"io/ioutil"
+	"time"
 
 	"log"
 	"os"
@@ -178,13 +180,19 @@ func StartServer(HttpServer *gin.Engine) {
 			"2) 运行目录：" + conf.Config.AppPath +
 			"")
 
-	err := HttpServer.Run(host)
+	// 优雅关闭重启
+	endless.DefaultReadTimeOut = 10 * time.Second
+	endless.DefaultWriteTimeOut = 30 * time.Second // 写 超时时间为 30s
+	e := endless.NewServer(host, HttpServer)
+	e.BeforeBegin = func(add string) {
+		pid := strconv.Itoa(os.Getpid())
+		ioutil.WriteFile(conf.Config.Log.Dir+"/pid", []byte(pid), 0777)
+	}
+	err := e.ListenAndServe()
 	if err != nil {
-		log.Println("http服务初始化失败，error：", err.Error())
+		log.Println("http服务异常，error：", err.Error())
 		os.Exit(200)
 	}
 
-	// 优雅关闭重启
-	endless.ListenAndServe(":"+port, HttpServer)
 	return
 }
