@@ -3,6 +3,7 @@ appport: 8080
 appversion: "1.0.0"
 timezone: "Asia/Shanghai"
 httpLimiter: 1
+RunMode: "debug"
 
 # 日志配置
 log:

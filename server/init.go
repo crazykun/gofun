@@ -86,6 +86,9 @@ func chkConfig() {
 		os.Exit(200)
 	}
 
+	// 设置全局变量
+	tools.SetGlobalData("RunMode", RunMode)
+
 	// 获取命令行参数
 	log.Println("run mode", RunMode)
 }
