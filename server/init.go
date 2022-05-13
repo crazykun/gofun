@@ -66,7 +66,7 @@ func initCache() {
 
 // 配置文件自检
 func chkConfig() {
-	flag.StringVar(&RunMode, "mode", "dev", "dev-开发环境, prod-生产，test-测试，pre-预上线")
+	flag.StringVar(&RunMode, "mode", "", "dev-开发环境, prod-生产，test-测试，pre-预上线")
 	flag.Parse()
 
 	if RunMode == "" {
