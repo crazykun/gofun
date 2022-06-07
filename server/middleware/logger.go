@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"bytes"
-	"gofun/internal/log"
+	"gofun/pkg/log"
 	"io/ioutil"
 	"time"
 

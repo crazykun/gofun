@@ -1,8 +1,8 @@
 package main
 
 import (
-	"gofun/internal/cache"
-	"gofun/internal/db"
+	"gofun/pkg/cache"
+	"gofun/pkg/db"
 	"gofun/server"
 
 	"github.com/gin-gonic/gin"

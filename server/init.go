@@ -2,11 +2,11 @@ package server
 
 import (
 	"flag"
-	routes "gofun/app/route"
 	"gofun/conf"
-	"gofun/internal/cache"
-	"gofun/internal/db"
-	"gofun/internal/tools"
+	"gofun/pkg/cache"
+	"gofun/pkg/db"
+	"gofun/pkg/tools"
+	routes "gofun/route"
 	"gofun/server/middleware"
 	"io/ioutil"
 	"time"
