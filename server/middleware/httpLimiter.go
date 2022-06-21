@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"fmt"
+	"gofun/pkg/log"
 	"time"
 
 	"github.com/didip/tollbooth"
@@ -24,10 +26,14 @@ func HttpLimiter(_max float64) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		httpError := tollbooth.LimitByRequest(lmt, ctx.Writer, ctx.Request)
 		if httpError != nil {
-			//ctx.Data(httpError.StatusCode, lmt.GetMessageContentType(), []byte(httpError.Message))
+			template := `{"name":"httpLimiter","uri":"%s", "ip":"%s", "result": "访问频率过高"}`
+			Uri := ctx.Request.RequestURI
+			template = fmt.Sprintf(template, Uri, ctx.ClientIP())
+			log.Log(template)
+
 			ctx.JSON(429, gin.H{
 				"status":  429,
-				"message": "触及接口访问频率限制",
+				"message": "访问频率过高，请稍后再试",
 				"data":    gin.H{
 					//"ip": ctx.ClientIP(),
 				},

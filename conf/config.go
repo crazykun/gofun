@@ -14,8 +14,9 @@ type AppConfig struct {
 	MySQL map[string]MySQLConfig
 	Redis map[string]RedisConfig
 
-	Grpc grpcConfig
-	Log  LogConfig
+	Grpc    grpcConfig
+	Log     LogConfig
+	Warnbot WarnbotConfig
 }
 
 type MySQLConfig struct {
@@ -47,4 +48,7 @@ type LogConfig struct {
 	Dir    string
 	Level  string
 	ToFile bool
+}
+type WarnbotConfig struct {
+	Wx string
 }

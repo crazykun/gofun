@@ -4,8 +4,10 @@ package middleware
 
 import (
 	"fmt"
+	"gofun/pkg/log"
 	"gofun/pkg/tools"
 	"math"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,9 +21,6 @@ func RankingLimiter(ranking int64) gin.HandlerFunc {
 		// 请求链接信息
 		// 读取每次请求的请求全局参数
 		_host, _ := ctx.Get("host")
-		host := tools.ValueInterfaceToString(_host)
-		Uri := host + ctx.Request.RequestURI
-		fmt.Println("请求uri=", Uri)
 
 		// 读取超全局变量即可
 		var _cpuNum interface{} = tools.GetGlobalData("cpu_num")
@@ -42,7 +41,7 @@ func RankingLimiter(ranking int64) gin.HandlerFunc {
 			ctx.Next()
 		} else {
 			fmt.Println("优先级范围错误。"+alertRanking+" => ", cpuPercent)
-			ctx.JSON(200, gin.H{
+			ctx.JSON(http.StatusOK, gin.H{
 				"status":  0,
 				"message": "优先级范围错误",
 				"data": gin.H{
@@ -54,9 +53,13 @@ func RankingLimiter(ranking int64) gin.HandlerFunc {
 			ctx.Abort()
 		}
 
-		if cpuPercent > ranking { // 直接熔断，等待x秒定时周期后看CPU占用率是否恢复
-			tools.Log("达到熔断标准，uri="+Uri, ctx.ClientIP())
-			ctx.JSON(429, gin.H{
+		// 直接熔断，等待x秒定时周期后看CPU占用率是否恢复
+		if cpuPercent > ranking {
+			template := `{"name":"rankingLimiter","uri":"%s", "ip":"%s", "result": "达到熔断标准"}`
+			template = fmt.Sprintf(template, _host, ctx.ClientIP())
+			log.Log(template)
+
+			ctx.JSON(http.StatusTooManyRequests, gin.H{
 				"status":  429,
 				"message": "通道拥挤，请稍后再试",
 				"data": gin.H{

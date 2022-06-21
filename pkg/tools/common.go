@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"encoding/base64"
@@ -24,6 +25,8 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 	"gorm.io/gorm"
 )
 
@@ -670,7 +673,7 @@ func JsonStringToMap(_string string) map[string]interface{} {
 	var data map[string]interface{}
 	err := json.Unmarshal([]byte(_string), &data)
 	if err == nil {
-		fmt.Println(data)
+		// fmt.Println(data)
 	}
 	return data
 }
@@ -829,27 +832,68 @@ func Binary62ToInt64(str string) int64 {
 	return num
 }
 
-// 获取mysql实例 @author 刘志超 2022年4月24日11:48:07
-func GetMyslInstance(db_name string) *gorm.DB {
+// 获取mysql实例
+func Db(db_name string) *gorm.DB {
 	return db.GetMysqlPool().GetInstance(db_name)
 }
 
-// 获取数 @author 刘志超 2022年4月24日11:48:07
-func GetRedisInstance(cache_name string) *redis.Client {
+// 获取数
+func Redis(cache_name string) *redis.Client {
 	return cache.GetRedisInstance().GetInstance(cache_name)
 }
 
-// 设置缓存 @author 刘志超 2022年4月24日11:48:07
-func SetCache(name, value string, t int) {
-	GetRedisInstance("default").Set(context.Background(), name, value, time.Second*time.Duration(t))
+// 设置缓存
+func SetCache(name, value string, t int, args ...interface{}) (string, error) {
+	redis_name := "default"
+	if len(args) > 0 {
+		redis_name = args[0].(string)
+	}
+	// todo 切换db
+
+	return Redis(redis_name).Set(context.Background(), name, value, time.Second*time.Duration(t)).Result()
 }
 
-// 获取缓存 @author 刘志超 2022年4月24日11:48:07
-func GetCache(name string) string {
-	str, err := GetRedisInstance("default").Get(context.Background(), name).Result()
-	if err == nil {
-		return str
-	} else {
-		return ""
+// 获取缓存
+func GetCache(name string, args ...interface{}) (string, error) {
+	redis_name := "default"
+	if len(args) > 0 {
+		redis_name = args[0].(string)
 	}
+	// todo 切换db
+
+	return Redis(redis_name).Get(context.Background(), name).Result()
+}
+
+// utf8 转 gb2312
+func Utf8ToGB2312(s []byte) ([]byte, error) {
+	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.HZGB2312.NewEncoder())
+	d, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+// String 将 `[]byte` 转换为 `string` 遇到0终止
+func StringEndZero(b []byte) string {
+	for idx, c := range b {
+		if c == 0 {
+			return string(b[:idx])
+		}
+	}
+	return string(b)
+}
+
+// StringWithoutZero 将 `[]byte` 转换为 `string` 跳过0
+func StringWithoutZero(b []byte) string {
+	s := make([]rune, len(b))
+	offset := 0
+	for i, c := range b {
+		if c == 0 {
+			offset++
+		} else {
+			s[i-offset] = rune(c)
+		}
+	}
+	return string(s[:len(b)-offset-1])
 }

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"flag"
 	"gofun/conf"
 	"gofun/pkg/cache"
@@ -9,6 +10,8 @@ import (
 	routes "gofun/route"
 	"gofun/server/middleware"
 	"io/ioutil"
+	"net/http"
+	"os/signal"
 	"time"
 
 	"log"
@@ -17,9 +20,9 @@ import (
 	"strconv"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	stats "github.com/semihalev/gin-stats"
 	"github.com/spf13/viper"
 )
 
@@ -110,11 +113,11 @@ func initConfig() {
 		viper.SetDefault("RunMode", gin.DebugMode)
 	}
 	viper.Unmarshal(&conf.Config)
-	log.Printf("%+v", conf.Config)
+	// log.Printf("%+v", conf.Config)
 	// 监听配置文件变化
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
-		log.Println("Config file:%s Op:%s\n", e.Name, e.Op)
+		log.Printf("Config file:%s Op:%s\n", e.Name, e.Op)
 	})
 }
 
@@ -127,14 +130,16 @@ func StartServer(HttpServer *gin.Engine) {
 
 	// 初始化数据库
 	initDb()
-
 	// 初始化缓存
 	initCache()
 
-	// Gin服务
-	HttpServer = gin.Default()
 	// Gin运行时：release、debug、test
 	gin.SetMode(conf.Config.RunMode)
+	// 关闭控制台日志
+	gin.DefaultWriter = ioutil.Discard
+
+	// Gin服务
+	HttpServer = gin.Default()
 
 	// 捕捉接口运行耗时（必须排第一）
 	HttpServer.Use(middleware.Runtime)
@@ -144,8 +149,11 @@ func StartServer(HttpServer *gin.Engine) {
 
 	// 日志中间件写文件日志
 	if conf.Config.Log.ToFile {
-		HttpServer.Use(middleware.LoggerToFile)
+		HttpServer.Use(middleware.LoggerToFile())
 	}
+
+	// 监控
+	HttpServer.Use(stats.RequestStats())
 
 	// 接口限频中间件-每秒最大访问量
 	HttpServer.Use(middleware.HttpLimiter(conf.Config.HttpLimiter))
@@ -154,6 +162,7 @@ func StartServer(HttpServer *gin.Engine) {
 	HttpServer.Use(middleware.AppError500)
 
 	// 静态路径
+	HttpServer.StaticFile("/favicon.ico", "./public/img/favicon.png")
 	HttpServer.Static("/assets", "./assets")
 
 	// 注册路由
@@ -183,19 +192,48 @@ func StartServer(HttpServer *gin.Engine) {
 			"2) 运行目录：" + conf.Config.AppPath +
 			"")
 
-	// 优雅关闭重启
-	endless.DefaultReadTimeOut = 10 * time.Second
-	endless.DefaultWriteTimeOut = 30 * time.Second // 写 超时时间为 30s
-	e := endless.NewServer(host, HttpServer)
-	e.BeforeBegin = func(add string) {
-		pid := strconv.Itoa(os.Getpid())
-		ioutil.WriteFile(conf.Config.Log.Dir+"/pid", []byte(pid), 0777)
+	srv := &http.Server{
+		Addr:    host,
+		Handler: HttpServer,
 	}
-	err := e.ListenAndServe()
-	if err != nil {
-		log.Println("http服务异常，error：", err.Error())
-		os.Exit(200)
+
+	// 优雅关闭
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println("Server Run Error:", err)
+		}
+	}()
+
+	// 保存pid文件
+	pid := strconv.Itoa(os.Getpid())
+	ioutil.WriteFile(conf.Config.Log.Dir+"/pid", []byte(pid), 0777)
+
+	quit := make(chan os.Signal)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	log.Println("Server Shutdown ...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Println("Server Shutdown Error:", err)
 	}
+
+	log.Println("Server exiting")
+
+	// 优雅重启
+	// endless.DefaultReadTimeOut = 10 * time.Second
+	// endless.DefaultWriteTimeOut = 30 * time.Second // 写 超时时间为 30s
+	// e := endless.NewServer(host, HttpServer)
+	// e.BeforeBegin = func(add string) {
+	// 	pid := strconv.Itoa(os.Getpid())
+	// 	ioutil.WriteFile(conf.Config.Log.Dir+"/pid", []byte(pid), 0777)
+	// }
+	// err := e.ListenAndServe()
+	// if err != nil {
+	// 	log.Println("http服务异常，error：", err.Error())
+	// 	os.Exit(200)
+	// }
 
 	return
 }

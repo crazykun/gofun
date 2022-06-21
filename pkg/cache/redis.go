@@ -45,11 +45,14 @@ func GetRedisInstance() *RedisPool {
 }
 
 func CloseRedisPool() {
+	if pool == nil {
+		return
+	}
 	for name, rdb := range pool.Instance {
 		if rdb == nil {
 			continue
 		}
 		rdb.Close()
-		log.Println("关闭redis连接：", name)
+		log.Println("close redis：", name)
 	}
 }

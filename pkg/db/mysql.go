@@ -53,12 +53,15 @@ func GetMysqlPool() *MysqlPool {
 }
 
 func CloseMysqlPool() {
+	if pool == nil {
+		return
+	}
 	for name, db := range pool.Instance {
 		sqlDB, err := db.DB()
 		if err != nil {
 			continue
 		}
 		sqlDB.Close()
-		log.Println("关闭数据库连接：", name)
+		log.Println("close db：", name)
 	}
 }

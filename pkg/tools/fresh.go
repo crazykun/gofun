@@ -25,7 +25,7 @@ func InitFresh() {
 		err := cmd.Start()
 		if err != nil {
 			log.Println(err)
-			log.Println("请运行安装fresh热更服务，请手动运行如下命令：\n go get -u github.com/pilu/fresh")
+			log.Println("请运行安装fresh热更服务，请手动运行如下命令：\n go get -u github.com/pilu/fresh\n 添加到环境变量：\n export PATH=$PATH:$GOPATH/bin\n 执行命令：\n fresh")
 			os.Exit(200)
 			//return
 		} else {

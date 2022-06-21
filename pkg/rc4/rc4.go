@@ -3,7 +3,6 @@ package rc4
 import (
 	cryptoRc4 "crypto/rc4"
 	"encoding/hex"
-	"fmt"
 	"strings"
 )
 
@@ -39,7 +38,6 @@ func (r *rc4) Encrypt(encryptStr string) (string, error) {
 	}
 
 	cipher1.XORKeyStream(dest1, []byte(encryptStr))
-	fmt.Println(string([]byte(r.key)))
 	return strings.ToUpper(hex.EncodeToString(dest1)), nil
 }
 
@@ -53,5 +51,16 @@ func (r *rc4) Decrypt(decryptStr string) (string, error) {
 	}
 
 	cipher2.XORKeyStream(hexDecryptStr, dest2)
-	return string(hexDecryptStr), nil
+	return string(GetValidByte(hexDecryptStr)), nil
+}
+
+// 过滤byte切片末尾填充的0
+func GetValidByte(src []byte) []byte {
+	var str_buf []byte
+	for _, v := range src {
+		if v != 0 {
+			str_buf = append(str_buf, v)
+		}
+	}
+	return str_buf
 }

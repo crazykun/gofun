@@ -4,6 +4,7 @@ package middleware
 
 import (
 	"fmt"
+	"gofun/pkg/log"
 	"gofun/pkg/tools"
 	"time"
 
@@ -38,16 +39,17 @@ func afterRequest(ctx *gin.Context) {
 
 	_host, _ := ctx.Get("host")
 	_runtime, _ := ctx.Get("runtime")
+	_param, _ := ctx.Get("param")
+	_body, _ := ctx.Get("body")
+	_result, _ := ctx.Get("result")
 
-	host := tools.ValueInterfaceToString(_host)
-	Uri := host + ctx.Request.RequestURI
-
-	fmt.Println("请求uri=", Uri)
-	fmt.Println("接口耗时=", _runtime, "ms")
-
-	statLatency := tools.StringToFloat(tools.ValueInterfaceToString(_runtime)) // ms
-	if statLatency > 3*1000 {                                                  // 超过3s都记录下来
-		tools.Log(tools.ValueInterfaceToString(_runtime)+"ms；"+Uri, ctx.ClientIP())
+	// 记录慢日志
+	statLatency := tools.StringToFloat(tools.ValueInterfaceToString(_runtime))
+	// 超过3s都记录下来
+	if statLatency > 3*1000 {
+		template := `{"name":"slow","uri":"%s","runtime":%f, "ip":"%s", "param":"%s", "body":"%s", "result":"%s"}`
+		template = fmt.Sprintf(template, _host, statLatency, ctx.ClientIP(), _param, _body, _result)
+		log.Log(template)
 	}
 
 	ctx.Next()
@@ -57,6 +59,16 @@ func afterRequest(ctx *gin.Context) {
 func CommonParam(ctx *gin.Context) {
 	// 设置公共参数
 	ctx.Set("app_name", "gofun")
+	ctx.Set("host", ctx.Request.Host+ctx.Request.RequestURI)
+	// url参数
+	ctx.Set("param", ctx.Request.URL.RawQuery)
 
+	// 获取body参数
+	buf := make([]byte, 1024)
+	n, _ := ctx.Request.Body.Read(buf)
+	ctx.Set("body", string(buf[0:n]))
+
+	// 返回值
+	ctx.Set("result", "")
 	ctx.Next()
 }
