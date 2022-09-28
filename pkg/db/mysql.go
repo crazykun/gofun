@@ -9,19 +9,20 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
 type MysqlPool struct {
 	Instance map[string]*gorm.DB
 }
 
-func (this *MysqlPool) addInstance(dbname string, db *gorm.DB) {
+func (m *MysqlPool) addInstance(dbname string, db *gorm.DB) {
 	log.Println("=============  初始化 mysql " + dbname + "  =============")
-	this.Instance[dbname] = db
+	m.Instance[dbname] = db
 }
 
-func (this *MysqlPool) GetInstance(dbname string) *gorm.DB {
-	return this.Instance[dbname]
+func (m *MysqlPool) GetInstance(dbname string) *gorm.DB {
+	return m.Instance[dbname]
 }
 
 var pool *MysqlPool
@@ -34,7 +35,12 @@ func RegisterMysqlPool(clientName string, dbConfig conf.MySQLConfig) {
 	}
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local", dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.Database, dbConfig.Charset)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   dbConfig.TablePre,
+			SingularTable: true,
+		},
+	})
 	if err != nil {
 		log.Println("数据库", clientName, "连接失败：", err)
 		os.Exit(200)

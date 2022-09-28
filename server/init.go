@@ -6,6 +6,7 @@ import (
 	"gofun/conf"
 	"gofun/pkg/cache"
 	"gofun/pkg/db"
+	"gofun/pkg/logs"
 	"gofun/pkg/tools"
 	routes "gofun/route"
 	"gofun/server/middleware"
@@ -20,6 +21,7 @@ import (
 	"strconv"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	stats "github.com/semihalev/gin-stats"
@@ -76,7 +78,7 @@ func chkConfig() {
 		// 从环境变量中获取
 		RunMode = os.Getenv("RUN_MODE")
 		if RunMode == "1" {
-			RunMode = "product"
+			RunMode = "prod"
 		} else if RunMode == "2" {
 			RunMode = "test"
 		} else if RunMode == "3" {
@@ -132,6 +134,8 @@ func StartServer(HttpServer *gin.Engine) {
 	initDb()
 	// 初始化缓存
 	initCache()
+	//初始化日志配置
+	logs.InitConfig()
 
 	// Gin运行时：release、debug、test
 	gin.SetMode(conf.Config.RunMode)
@@ -140,6 +144,11 @@ func StartServer(HttpServer *gin.Engine) {
 
 	// Gin服务
 	HttpServer = gin.Default()
+
+	// pprof性能分析
+	if conf.Config.RunMode == "debug" {
+		pprof.Register(HttpServer)
+	}
 
 	// 捕捉接口运行耗时（必须排第一）
 	HttpServer.Use(middleware.Runtime)
@@ -169,7 +178,7 @@ func StartServer(HttpServer *gin.Engine) {
 	routes.RegisterRoutes(HttpServer)
 
 	// 模板目录
-	HttpServer.LoadHTMLGlob(AppPath + "/app/view/*")
+	HttpServer.LoadHTMLGlob(AppPath + "/public/view/*")
 
 	// // 注册其他路由，可以自定义
 	// routes.RouterRegister(HttpServer)

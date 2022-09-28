@@ -1,5 +1,5 @@
 AppName: "gin web demo"
-appport: 8080
+appport: 9100
 appversion: "1.0.0"
 timezone: "Asia/Shanghai"
 httpLimiter: 1
@@ -8,9 +8,12 @@ RunMode: "debug"
 # 日志配置
 log:
   dir: "./log"
-  # possible values: DEBUG, INFO, WARNING, ERROR, FATAL
   level: "DEBUG"
   toFile: true
+  maxsize: 1
+  maxAge: 1
+  maxBackups: 3
+  compress: false
 
 mysql:
   default: {
@@ -20,6 +23,7 @@ mysql:
       password: "123456",
       database: "test",
       charset: "utf8mb4",
+      tablePre: "",
       #连接池配置
       maxNum: 10,
       minNum: 2,

@@ -3,12 +3,14 @@ package middleware
 // 处理App运行时的一些必要事件
 
 import (
-	"fmt"
-	"gofun/pkg/log"
+	"bytes"
+	"gofun/pkg/logs"
 	"gofun/pkg/tools"
+	"io"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // 接口运行耗时
@@ -47,9 +49,14 @@ func afterRequest(ctx *gin.Context) {
 	statLatency := tools.StringToFloat(tools.ValueInterfaceToString(_runtime))
 	// 超过3s都记录下来
 	if statLatency > 3*1000 {
-		template := `{"name":"slow","uri":"%s","runtime":%f, "ip":"%s", "param":"%s", "body":"%s", "result":"%s"}`
-		template = fmt.Sprintf(template, _host, statLatency, ctx.ClientIP(), _param, _body, _result)
-		log.Log(template)
+		logs.Warn("slow_log_warn",
+			zap.Any("host", _host),
+			zap.Float64("runtime", statLatency),
+			zap.String("ip", ctx.ClientIP()),
+			zap.Any("param", _param),
+			zap.Any("body", _body),
+			zap.Any("result", _result),
+		)
 	}
 
 	ctx.Next()
@@ -67,6 +74,7 @@ func CommonParam(ctx *gin.Context) {
 	buf := make([]byte, 1024)
 	n, _ := ctx.Request.Body.Read(buf)
 	ctx.Set("body", string(buf[0:n]))
+	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(buf))
 
 	// 返回值
 	ctx.Set("result", "")

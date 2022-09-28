@@ -15,5 +15,5 @@ COPY cmd ./cmd
 COPY public ./public
 # COPY static ./static
 # 程序监听的端口，根据实际情况修改
-EXPOSE 9000
+EXPOSE 9100
 CMD ["./main"]

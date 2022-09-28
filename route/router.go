@@ -11,10 +11,7 @@ import (
 
 func RegisterRoutes(router *gin.Engine) {
 	// 首页
-	router.GET("/", controller.Index)
-	// 监控
-	router.GET("/monitor/db", controller.Db)
-	router.GET("/monitor/stat", controller.Stat)
+	router.Any("/", controller.Index)
 
 	// 心跳接口
 	router.GET("/health-check", func(c *gin.Context) {
@@ -29,4 +26,6 @@ func RegisterRoutes(router *gin.Engine) {
 	router.GET("/err", func(context *gin.Context) {
 		panic("error test")
 	})
+	// 监控
+	router.GET("/monitor/stat", controller.Stat)
 }

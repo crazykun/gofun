@@ -4,12 +4,13 @@ package middleware
 
 import (
 	"fmt"
-	"gofun/pkg/log"
+	"gofun/pkg/logs"
 	"gofun/pkg/tools"
 	"math"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // RankingLimiter 限制接口请求数据，做到主动降载，超阀值会自动熔断
@@ -55,10 +56,8 @@ func RankingLimiter(ranking int64) gin.HandlerFunc {
 
 		// 直接熔断，等待x秒定时周期后看CPU占用率是否恢复
 		if cpuPercent > ranking {
-			template := `{"name":"rankingLimiter","uri":"%s", "ip":"%s", "result": "达到熔断标准"}`
-			template = fmt.Sprintf(template, _host, ctx.ClientIP())
-			log.Log(template)
-
+			// 记录日志
+			logs.Warn("ranking_limit_log", zap.Any("Uri", _host), zap.String("ClientIP", ctx.ClientIP()))
 			ctx.JSON(http.StatusTooManyRequests, gin.H{
 				"status":  429,
 				"message": "通道拥挤，请稍后再试",
@@ -67,6 +66,7 @@ func RankingLimiter(ranking int64) gin.HandlerFunc {
 					"CPU-Percent":   cpuPercent,
 				},
 			})
+
 			ctx.Abort()
 		} else {
 			ctx.Next()

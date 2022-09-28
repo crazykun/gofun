@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"bytes"
-	"gofun/pkg/log"
+	"gofun/pkg/logs"
 	"io/ioutil"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // 日志记录到文件
@@ -21,7 +22,7 @@ func LoggerToFile() gin.HandlerFunc {
 			var err error
 			requestBody, err = ctx.GetRawData()
 			if err != nil {
-				log.Warn(map[string]interface{}{"err": err.Error()}, "get http request body error")
+				logs.Warn(err.Error())
 			}
 			ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(requestBody))
 		}
@@ -37,15 +38,21 @@ func LoggerToFile() gin.HandlerFunc {
 		if !is_result {
 			result = ""
 		}
-		log.Info(map[string]interface{}{
-			"statusCode": ctx.Writer.Status(),
-			"runtime":    float64(end.Sub(start).Nanoseconds()/1e4) / 100.0,
-			"clientIp":   ctx.ClientIP(),
-			"method":     ctx.Request.Method,
-			"uri":        ctx.Request.RequestURI,
-			"param":      param,
-			"result":     result,
-		})
+		// body, is_body := ctx.Get("body")
+		// if !is_body {
+		// 	body = ""
+		// }
+		var field []zap.Field
+		field = append(field, zap.Int("statusCode", ctx.Writer.Status()))
+		field = append(field, zap.Float64("runtime", float64(end.Sub(start).Nanoseconds()/1e4)/100.0))
+		field = append(field, zap.String("clientIp", ctx.ClientIP()))
+		field = append(field, zap.String("method", ctx.Request.Method))
+		field = append(field, zap.String("uri", ctx.Request.URL.Path))
+		field = append(field, zap.String("path", ctx.Request.RequestURI))
+		field = append(field, zap.Any("param", param))
+		// field = append(field, zap.Any("body", body))
+		field = append(field, zap.Any("result", result))
+		logs.Info("access_log", field...)
 
 	}
 }

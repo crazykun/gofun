@@ -4,16 +4,16 @@ package middleware
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"gofun/conf"
-	"gofun/pkg/log"
+	"gofun/pkg/logs"
 	"gofun/pkg/tools"
 	"net/http"
 	"runtime/debug"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type template struct {
@@ -52,10 +52,16 @@ func AppError500(ctx *gin.Context) {
 				DebugStack:  DebugStack,
 			}
 
-			_txt, err := json.Marshal(t)
-			if err == nil {
-				log.Err(string(_txt))
-			}
+			logs.Error(errorName,
+				zap.String("RequestTime", t.RequestTime),
+				zap.String("ErrorName", t.ErrorName),
+				zap.String("ErrorMsg", t.ErrorMsg),
+				zap.String("RequestURL", t.RequestURL),
+				zap.String("RequestUA", t.RequestUA),
+				zap.String("RequestBody", t.RequestBody),
+				zap.String("RequestIP", t.RequestIP),
+				zap.String("DebugStack", t.DebugStack),
+			)
 
 			bot := conf.Config.Warnbot.Wx
 			if bot != "" {

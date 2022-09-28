@@ -26,6 +26,7 @@ type MySQLConfig struct {
 	Password string
 	Database string
 	Charset  string
+	TablePre string
 	MaxNum   int
 	MinNum   int
 }
@@ -45,9 +46,13 @@ type grpcConfig struct {
 }
 
 type LogConfig struct {
-	Dir    string
-	Level  string
-	ToFile bool
+	Dir        string
+	Level      string
+	ToFile     bool
+	MaxSize    int
+	MaxAge     int
+	MaxBackups int
+	Compress   bool
 }
 type WarnbotConfig struct {
 	Wx string
