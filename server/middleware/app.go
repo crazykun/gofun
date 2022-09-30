@@ -71,9 +71,10 @@ func CommonParam(ctx *gin.Context) {
 	ctx.Set("param", ctx.Request.URL.RawQuery)
 
 	// 获取body参数
-	buf := make([]byte, 1024)
-	n, _ := ctx.Request.Body.Read(buf)
-	ctx.Set("body", string(buf[0:n]))
+	buf, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		ctx.Set("body", string(buf))
+	}
 	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(buf))
 
 	// 返回值
